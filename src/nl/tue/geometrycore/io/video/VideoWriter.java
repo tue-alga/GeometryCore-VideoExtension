@@ -26,21 +26,27 @@ public class VideoWriter {
     private RasterWriter frame;
     private SeekableByteChannel out;
     private AWTSequenceEncoder encoder;
-    private int width, height;
-    private File file;
+    private final int width, height;
+    private final File file;
+    private final int fps;
 
+    public static VideoWriter customVideo(File file, int width, int height, int fps) {
+        return new VideoWriter(file, width, height, fps);
+    }
+    
     public static VideoWriter fullHDvideo(File file) {
-        return new VideoWriter(file, 1920, 1080);
+        return new VideoWriter(file, 1920, 1080, 30);
     }
 
     public static VideoWriter halfHDvideo(File file) {
-        return new VideoWriter(file, 1280, 720);
+        return new VideoWriter(file, 1280, 720, 30);
     }
 
-    private VideoWriter(File file, int width, int height) {
+    private VideoWriter(File file, int width, int height, int fps) {
         this.file = file;
         this.width = width;
         this.height = height;
+        this.fps = fps;
     }
 
     public double getAspectRatio() {
@@ -57,7 +63,7 @@ public class VideoWriter {
     public void initialize() throws IOException {
         out = (SeekableByteChannel) NIOUtils.writableFileChannel(file.getAbsolutePath());
         // for Android use: AndroidSequenceEncoder
-        encoder = new AWTSequenceEncoder(out, Rational.R(30, 1));
+        encoder = new AWTSequenceEncoder(out, Rational.R(fps, 1));
     }
 
     public RasterWriter startFrame(Rectangle worldView) throws IOException {
@@ -76,7 +82,7 @@ public class VideoWriter {
         endFrame(1);
     }
 
-    public void endFrame(int cnt) throws IOException {
+    public BufferedImage endFrame(int cnt) throws IOException {
         BufferedImage image = frame.closeWithResult();
         // Encode the image
         while (cnt > 0) {
@@ -84,6 +90,14 @@ public class VideoWriter {
             cnt--;
         }
         frame = null;
+        return image;
+    }
+
+    public void injectImage(int cnt, BufferedImage image) throws IOException {
+        while (cnt > 0) {
+            encoder.encodeImage(image);
+            cnt--;
+        }
     }
 
     public void close() throws IOException {
