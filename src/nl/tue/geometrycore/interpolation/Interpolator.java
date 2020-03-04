@@ -10,6 +10,7 @@ import nl.tue.geometrycore.geometry.BaseGeometry;
 import nl.tue.geometrycore.geometry.Vector;
 import nl.tue.geometrycore.geometry.curved.Circle;
 import nl.tue.geometrycore.geometry.linear.LineSegment;
+import nl.tue.geometrycore.geometry.linear.PolyLine;
 import nl.tue.geometrycore.geometry.linear.Polygon;
 import nl.tue.geometrycore.geometry.linear.Rectangle;
 import nl.tue.geometrycore.interpolation.ease.LinearEasing;
@@ -95,6 +96,23 @@ public class Interpolator {
      */
     public Polygon between(double fraction, Polygon a, Polygon b) {
         Polygon p = new Polygon();
+        for (int i = 0; i < a.vertexCount(); i++) {
+            p.addVertex(between(fraction, a.vertex(i), b.vertex(i)));
+        }
+        return p;
+
+    }
+    
+    /**
+     * Assumes same number of vertices.
+     *
+     * @param fraction
+     * @param a
+     * @param b
+     * @return
+     */
+    public PolyLine between(double fraction, PolyLine a, PolyLine b) {
+        PolyLine p = new PolyLine();
         for (int i = 0; i < a.vertexCount(); i++) {
             p.addVertex(between(fraction, a.vertex(i), b.vertex(i)));
         }
